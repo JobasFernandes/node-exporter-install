@@ -1,6 +1,28 @@
 #!/bin/sh -e
 VERSION=1.7.0
-RELEASE=node_exporter-${VERSION}.linux-amd64
+
+# Detect architecture
+ARCH=$(uname -m)
+case $ARCH in
+    x86_64)
+        ARCH="amd64"
+        ;;
+    aarch64)
+        ARCH="arm64"
+        ;;
+    armv7l)
+        ARCH="armv7"
+        ;;
+    arm*)
+        ARCH="arm"
+        ;;
+    *)
+        echo "Architecture $ARCH is not supported by this installation script." >&2
+        exit 1
+        ;;
+esac
+
+RELEASE=node_exporter-${VERSION}.linux-${ARCH}
 
 _check_root () {
     if [ $(id -u) -ne 0 ]; then
@@ -37,7 +59,7 @@ rm -rf /tmp/${RELEASE}
 if [ -x "$(command -v systemctl)" ]; then
     cat << EOF > /lib/systemd/system/node-exporter.service
 [Unit]
-Description=Prometheus agent
+Description=Prometheus Node Exporter
 After=network.target
 StartLimitIntervalSec=0
 
